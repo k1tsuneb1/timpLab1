@@ -22,8 +22,8 @@ struct Incident {
 
 //бд
 vector<Incident> db = {
-    {"1", "Сбой ГПС-трекера","Средний", "На шоссе 34", "Открыт", "2023-10-25 14:30:00"},
-    {"2", "Прокол колеса", "Низкий", "Около завода им. Ленина", "В работе",  "2023-10-26 09:15:00"}
+    {"1", "Сбой ГПС-трекера","Средний", "На шоссе 34", "Открыт", "2026-01-25 14:30:00"},
+    {"2", "Прокол колеса", "Низкий", "Около завода им. Ленина", "В работе",  "2026-01-26 09:15:00"}
 };
 
 //для получения текущей даты и времени в формате "YYYY-MM-DD HH:MM:SS"
@@ -72,6 +72,7 @@ int main(){
         res.status = 200; //ОК
     });
 
+    //POST добавление инцидента
     svr.Post("/api/incidents", [](const httplib::Request& req, httplib::Response& res){
         setCorsHeaders(res);
         try{
@@ -83,7 +84,7 @@ int main(){
             newIncident.detailedDescription = body["detailedDescription"];
             newIncident.threatLevel = body["threatLevel"];
             newIncident.status = body["status"];
-            newIncident.date = getCurrentDate(); // СТАВИМ ТЕКУЩУЮ ДАТУ
+            newIncident.date = getCurrentDate();
 
             db.push_back(newIncident);
 
@@ -98,7 +99,8 @@ int main(){
             res.set_content(R"({"error": "Неверный формат данных JSON"})", "application/json; charset=utf-8");
         }
     });
-
+    
+    //функция для обновления инцидента по id, который передаётся в URL
     svr.Put(R"(/api/incidents/(\d+))", [](const httplib::Request& req, httplib::Response& res){
         setCorsHeaders(res);
 
@@ -130,6 +132,7 @@ int main(){
         }
     });
 
+    //функция для удаления инцидента по id
     svr.Delete(R"(/api/incidents/(\d+))", [](const httplib::Request& req, httplib::Response& res){
         setCorsHeaders(res);
 
@@ -154,6 +157,32 @@ int main(){
     svr.Options(R"(/api/incidents/(\d+))", [](const httplib::Request& req, httplib::Response& res){
         setCorsHeaders(res);
         res.status = 200; //ОК
+    });
+
+    //GET инцидент по id
+    svr.Get(R"(/api/incidents/(\d+))", [](const httplib::Request& req, httplib::Response& res){
+        setCorsHeaders(res);
+        string requestedId = req.matches[1];
+        
+        for(const auto& incident : db){
+            if (incident.id == requestedId) { //нашли инцидент с этим id
+                json jsonResponse = {
+                    {"id", incident.id},
+                    {"description", incident.description},
+                    {"detailedDescription", incident.detailedDescription},
+                    {"threatLevel", incident.threatLevel},
+                    {"status", incident.status},
+                    {"date", incident.date}
+                };
+                res.status = 200;
+                res.set_content(jsonResponse.dump(), "application/json; charset=utf-8");
+                return; // выходим из функции
+            }
+        }
+        
+        //если не нашли
+        res.status = 404;
+        res.set_content(R"({"error": "Инцидент не найден"})", "application/json; charset=utf-8");
     });
 
     cout << "Сервер запущен на http://localhost:8080" << endl;

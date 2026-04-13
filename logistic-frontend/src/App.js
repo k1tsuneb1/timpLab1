@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import IncidentList from './components/IncidentList';
+import AddIncident from './components/AddIncident';
 import EditIncident from './components/EditIncident';
 import IncidentDetails from './components/IncidentDetails';
 
@@ -19,6 +20,7 @@ function App() {
 
         <Routes>
           <Route path="/" element={<IncidentList />} />
+          <Route path="/add" element={<AddIncident />} />
           <Route path="/edit/:id" element={<EditIncident />} />
           <Route path="/incident/:id" element={<IncidentDetails />} />
         </Routes>

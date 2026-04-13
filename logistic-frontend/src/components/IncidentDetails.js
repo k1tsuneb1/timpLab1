@@ -11,11 +11,9 @@ function IncidentDetails() {
     useEffect(() => {
         const fetchIncident = async () => {
             try {
-                // Для простоты запрашиваем весь список и ищем нужный.
-                // В идеале на бэкенде должен быть маршрут GET /api/incidents/:id, но для лабы хватит и так.
-                const response = await axios.get('http://127.0.0.1:8080/api/incidents');
-                const foundIncident = response.data.find(inc => inc.id === id);
-                setIncident(foundIncident);
+                //(обновлено) получаем конкретный инцидент по ID
+                const response = await axios.get(`http://127.0.0.1:8080/api/incidents/${id}`);
+                setIncident(response.data);
             } catch (error) {
                 console.error("Ошибка при загрузке инцидента:", error);
             } finally {
@@ -29,7 +27,7 @@ function IncidentDetails() {
         if (!window.confirm("Удалить этот инцидент?")) return;
         try {
             await axios.delete(`http://127.0.0.1:8080/api/incidents/${id}`);
-            navigate('/'); // После удаления возвращаем на главную
+            navigate('/'); //после удаления возвращаем на главную
         } catch (error) {
             console.error("Ошибка при удалении:", error);
             alert("Не удалось удалить.");
@@ -39,7 +37,7 @@ function IncidentDetails() {
     if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Загрузка...</div>;
     if (!incident) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>Инцидент не найден.</div>;
 
-    // Вспомогательные функции для стилей (скопированы из списка)
+    //вспомогательные функции для стилей
     const getThreatColor = (level) => {
         switch(level) {
             case 'Низкий': return '#28a745'; case 'Средний': return '#ffc107'; 
@@ -90,7 +88,7 @@ function IncidentDetails() {
                 <p style={{ 
                     margin: 0, 
                     fontSize: '16px', 
-                    whiteSpace: 'pre-wrap', // Чтобы сохранялись переносы строк
+                    whiteSpace: 'pre-wrap', //чтобы сохранялись переносы строк
                     backgroundColor: '#fff', 
                     padding: '20px', 
                     borderRadius: '6px', 
@@ -99,7 +97,7 @@ function IncidentDetails() {
                     {incident.detailedDescription || "Подробное описание отсутствует."}
                 </p>
             </div>
-            
+
             {/* Кнопки действий */}
             <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #eee', paddingTop: '20px' }}>
                 <Link to="/" style={{ color: '#6c757d', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>

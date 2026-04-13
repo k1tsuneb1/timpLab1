@@ -5,20 +5,13 @@ import { Link } from 'react-router-dom';
 function IncidentList() {
     const [incidents, setIncidents] = useState([]);
     
-    // Состояния для формы добавления
-    const [showForm, setShowForm] = useState(false);
-    const [description, setDescription] = useState('');
-    const [detailedDescription, setDetailedDescription] = useState('');
-    const [threatLevel, setThreatLevel] = useState('Низкий');
-    // Состояние status для формы больше не нужно, мы его захардкодим при отправке
-
-    // Состояния для фильтров
+    //состояния для фильтров
     const [searchQuery, setSearchQuery] = useState('');
     const [filterThreat, setFilterThreat] = useState('Все');
-    const [filterStatus, setFilterStatus] = useState('Все'); // НОВЫЙ ФИЛЬТР ПО СТАТУСУ
+    const [filterStatus, setFilterStatus] = useState('Все');
     
 
-    // --- ЧТЕНИЕ (GET) ---
+    //чтение данных с сервера (GET)
     const fetchIncidents = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:8080/api/incidents');
@@ -32,7 +25,7 @@ function IncidentList() {
         fetchIncidents();
     }, []);
 
-    // --- УДАЛЕНИЕ (DELETE) ---
+    //удаление инцидента (DELETE)
     const handleDelete = async (id) => {
         if (!window.confirm("Удалить этот инцидент?")) return;
         try {
@@ -43,30 +36,7 @@ function IncidentList() {
         }
     };
 
-    // --- ДОБАВЛЕНИЕ (POST) ---
-    const handleAdd = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.post('http://127.0.0.1:8080/api/incidents', {
-                description: description,
-                detailedDescription: detailedDescription, // ОТПРАВЛЯЕМ ПОДРОБНОСТИ
-                threatLevel: threatLevel,
-                status: 'Открыт'
-            });
-            
-            fetchIncidents(); 
-            
-            // Сброс формы
-            setDescription('');
-            setThreatLevel('Низкий');
-            setShowForm(false);
-        } catch (error) {
-            console.error("Ошибка при добавлении:", error);
-            alert("Не удалось добавить инцидент.");
-        }
-    };
-
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ЦВЕТОВ ---
+    //вспомогательный метод для цвета уровня угрозы
     const getThreatColor = (level) => {
         switch(level) {
             case 'Низкий': return '#28a745'; 
@@ -76,7 +46,7 @@ function IncidentList() {
             default: return '#333';
         }
     };
-
+    //вспомогательный метод для стилей статуса
     const getStatusStyle = (status) => {
         switch(status) {
             case 'Открыт': return { color: '#dc3545', fontWeight: 'bold' }; // Красный текст
@@ -86,23 +56,23 @@ function IncidentList() {
         }
     };
 
-    // --- ФИЛЬТРАЦИЯ ДАННЫХ ДЛЯ ОТОБРАЖЕНИЯ ---
+    //фильтрация данных по уровню угрозы, статусу и поисковому запросу
     const filteredIncidents = incidents.filter(incident => {
         const matchThreat = filterThreat === 'Все' || incident.threatLevel === filterThreat;
-        const matchStatus = filterStatus === 'Все' || incident.status === filterStatus; // УЧИТЫВАЕМ СТАТУС
+        const matchStatus = filterStatus === 'Все' || incident.status === filterStatus;
         const matchSearch = incident.description.toLowerCase().includes(searchQuery.toLowerCase());
         
-        return matchThreat && matchStatus && matchSearch; // Должны совпасть все три условия
+        return matchThreat && matchStatus && matchSearch; //должны совпасть все три условия
     });
 
     return (
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
             
-            {/* ШАПКА */}
+            {/* шапка */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
                 <h2 style={{ margin: 0, color: '#333' }}>Сводка инцидентов</h2>
                 
-                {/* БЛОК ФИЛЬТРОВ */}
+                {/* блок фильтров */}
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input 
                         type="text" 
@@ -124,7 +94,6 @@ function IncidentList() {
                         <option value="Критический">Критический</option>
                     </select>
 
-                    {/* НОВЫЙ ФИЛЬТР ПО СТАТУСУ */}
                     <select 
                         value={filterStatus} 
                         onChange={(e) => setFilterStatus(e.target.value)} 
@@ -136,55 +105,21 @@ function IncidentList() {
                         <option value="Закрыт">Закрыт</option>
                     </select>
 
-                    <button 
-                        onClick={() => setShowForm(!showForm)}
+                    <Link 
+                        to="/add"
                         style={{
-                            backgroundColor: showForm ? '#dc3545' : '#007bff',
-                            color: 'white', border: 'none', borderRadius: '50%',
-                            width: '40px', height: '40px', fontSize: '24px', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.3s'
+                            backgroundColor: '#007bff', color: 'white', textDecoration: 'none',
+                            borderRadius: '50%', width: '40px', height: '40px', fontSize: '24px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}
-                        title={showForm ? "Отменить" : "Добавить инцидент"}
+                        title="Добавить инцидент"
                     >
-                        {showForm ? '×' : '+'}
-                    </button>
+                        +
+                    </Link>
                 </div>
             </div>
 
-            {/* ФОРМА ДОБАВЛЕНИЯ (теперь без выбора статуса) */}
-            {showForm && (
-                <form onSubmit={handleAdd} style={{ 
-                    display: 'flex', gap: '10px', marginBottom: '20px', padding: '15px', 
-                    backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #ddd' 
-                }}>
-                    <input 
-                        type="text" 
-                        placeholder="Заголовок инцидента" 
-                        value={description} 
-                        onChange={(e) => setDescription(e.target.value)} 
-                        required 
-                        style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    />
-                    <textarea 
-                        placeholder="Подробное описание происшествия..." 
-                        value={detailedDescription} 
-                        onChange={(e) => setDetailedDescription(e.target.value)}
-                        style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px' }}
-                    />
-                    <select value={threatLevel} onChange={(e) => setThreatLevel(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
-                        <option value="Низкий">Низкий</option>
-                        <option value="Средний">Средний</option>
-                        <option value="Высокий">Высокий</option>
-                        <option value="Критический">Критический</option>
-                    </select>
-                    {/* Селект выбора статуса удален */}
-                    <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                        Добавить
-                    </button>
-                </form>
-            )}
-
-            {/* ТАБЛИЦА */}
+            {/* таблица */}
             {filteredIncidents.length === 0 ? (
                 <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', padding: '20px' }}>
                     {incidents.length === 0 ? "Нет зарегистрированных инцидентов." : "По вашему запросу ничего не найдено."}
@@ -203,11 +138,11 @@ function IncidentList() {
                         {filteredIncidents.map((incident) => (
                             <tr key={incident.id} style={{ borderBottom: '1px solid #eee' }}>
                                 <td style={{ padding: '12px' }}>
-                                    {/* Делаем описание ссылкой на страницу деталей */}
+                                    {/* делаем описание ссылкой на страницу деталей */}
                                     <Link to={`/incident/${incident.id}`} style={{ color: '#007bff', textDecoration: 'none', fontWeight: '500' }}>
                                         {incident.description}
                                     </Link>
-                                    {/* И выводим мелко дату под описанием */}
+                                    {/* и выводим мелко дату под описанием */}
                                     <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
                                         {incident.date || ''}
                                     </div>
@@ -220,7 +155,7 @@ function IncidentList() {
                                         {incident.threatLevel}
                                     </span>
                                 </td>
-                                {/* Добавили стиль для статуса */}
+                                {/* добавили стиль для статуса */}
                                 <td style={{ padding: '12px', ...getStatusStyle(incident.status) }}>
                                     {incident.status}
                                 </td>

@@ -6,23 +6,22 @@ function EditIncident() {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // 1. ДОБАВИЛИ НОВОЕ СОСТОЯНИЕ ДЛЯ ПОДРОБНОГО ОПИСАНИЯ
     const [description, setDescription] = useState('');
-    const [detailedDescription, setDetailedDescription] = useState(''); // <--- Новое
+    const [detailedDescription, setDetailedDescription] = useState('');
     const [threatLevel, setThreatLevel] = useState('Низкий');
     const [status, setStatus] = useState('Открыт');
     const [loading, setLoading] = useState(true);
 
-    // 2. ПОДГРУЖАЕМ ДАННЫЕ С СЕРВЕРА
+    // подгружаем данные инцидента при загрузке страницы
     useEffect(() => {
         const fetchIncident = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8080/api/incidents');
-                const incident = response.data.find(inc => inc.id === id);
+                //запрашиваем конкретный инцидент по ID
+                const response = await axios.get(`http://127.0.0.1:8080/api/incidents/${id}`);
+                const incident = response.data;
                 
                 if (incident) {
                     setDescription(incident.description);
-                    // ЗАПОЛНЯЕМ НОВОЕ ПОЛЕ ИЗ ОТВЕТА СЕРВЕРА
                     setDetailedDescription(incident.detailedDescription || ''); 
                     setThreatLevel(incident.threatLevel);
                     setStatus(incident.status);
@@ -36,13 +35,13 @@ function EditIncident() {
         fetchIncident();
     }, [id]);
 
-    // 3. ОТПРАВЛЯЕМ ОБНОВЛЕННЫЕ ДАННЫЕ (PUT)
+    // функция для сохранения изменений
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
             await axios.put(`http://127.0.0.1:8080/api/incidents/${id}`, {
                 description,
-                detailedDescription, // <--- ОТПРАВЛЯЕМ ПОДРОБНОСТИ НА СЕРВЕР
+                detailedDescription,
                 threatLevel,
                 status
             });
@@ -73,7 +72,6 @@ function EditIncident() {
                     />
                 </div>
 
-                {/* --- НОВОЕ ПОЛЕ ВВОДА ДЛЯ ПОДРОБНОГО ОПИСАНИЯ --- */}
                 <div>
                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Подробное описание происшествия:</label>
                     <textarea 
